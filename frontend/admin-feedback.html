@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vendas e feedback · SlideHub</title>
+  <meta name="description" content="Veja quem comprou cada material, as avaliações e responda os comentários e dúvidas." />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23E4572E'/%3E%3Cpath d='M18 42l10-20 10 20' stroke='white' stroke-width='5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M23 34h10' stroke='white' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/src/css/styles.css" />
+</head>
+<body>
+  <div id="site-header"></div>
+  <main class="page">
+    <div class="container">
+      <div class="section-head fb-head">
+        <div>
+          <h1 class="page-title">Vendas e feedback</h1>
+          <p class="section-sub">Quem comprou cada material, as avaliações e todos os comentários — responda e tire as dúvidas dos clientes.</p>
+        </div>
+        <p class="admin-atalho"><a class="btn btn-outline" href="/admin">← Painel do admin</a></p>
+      </div>
+
+      <div id="fb-stats" class="fb-stats" aria-live="polite"></div>
+
+      <div class="fb-tabs" role="tablist">
+        <button class="fb-tab active" role="tab" id="tab-materiais" aria-selected="true" data-tab="materiais">Por material</button>
+        <button class="fb-tab" role="tab" id="tab-comentarios" aria-selected="false" data-tab="comentarios">Comentários e dúvidas <span class="fb-badge" id="badge-pend" hidden>0</span></button>
+      </div>
+
+      <!-- Aba: por material -->
+      <section class="panel" id="painel-materiais" role="tabpanel" aria-labelledby="tab-materiais">
+        <div id="fb-materiais"><div class="skeleton-list"><div class="skel skel-row"></div><div class="skel skel-row"></div><div class="skel skel-row"></div></div></div>
+      </section>
+
+      <!-- Aba: comentários -->
+      <section class="panel" id="painel-comentarios" role="tabpanel" aria-labelledby="tab-comentarios" hidden>
+        <div class="fb-filtros">
+          <div class="field"><label for="f-material">Material</label><select id="f-material"><option value="">Todos os materiais</option></select></div>
+          <div class="field"><label for="f-status">Situação</label>
+            <select id="f-status">
+              <option value="todos">Todos</option>
+              <option value="pendentes">Sem resposta</option>
+              <option value="respondidos">Respondidos</option>
+            </select>
+          </div>
+          <div class="field fb-busca"><label for="f-q">Buscar</label><input id="f-q" type="search" placeholder="Texto, nome ou e-mail do cliente…" /></div>
+        </div>
+        <div id="fb-comentarios" class="fb-lista"></div>
+        <div class="fb-mais"><button class="btn btn-outline" id="fb-mais" hidden>Carregar mais</button></div>
+      </section>
+    </div>
+  </main>
+  <div id="site-footer"></div>
+  <div id="toasts" class="toasts" aria-live="polite"></div>
+  <div id="modal-root"></div>
+  <script type="module" src="/src/js/admin-feedback.js"></script>
+</body>
+</html>
