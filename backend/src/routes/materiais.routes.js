@@ -32,6 +32,15 @@ router.delete(
   fb.excluirComentario
 );
 
+// Editar o próprio comentário
+router.put(
+  '/comentarios/:comentarioId',
+  requireAuth,
+  comentarioLimiter,
+  validate({ params: z.object({ comentarioId: z.coerce.number().int().min(1) }) }),
+  fb.editarComentario
+);
+
 // Página do produto + avaliações + comentários
 router.get('/:id', authOpcional, idParam, ctrl.detalhe);
 router.get('/:id/comentarios', authOpcional, idParam, fb.listarComentarios);

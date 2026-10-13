@@ -885,7 +885,6 @@ h1, h2, h3 {
   color: var(--muted);
   display: -webkit-box;
   -webkit-line-clamp: 2;
-  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   min-height: 2.7em;
@@ -2303,7 +2302,7 @@ h1, h2, h3 {
 /* ============================================================
    Admin · Vendas e feedback
    ============================================================ */
-.fb-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+.fb-head { padding-top: 28px; display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
 .fb-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; margin-bottom: 22px; }
 .fb-stat { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 18px; box-shadow: var(--shadow-sm); display: grid; gap: 2px; }
 .fb-stat strong { font-family: 'Fredoka', sans-serif; font-size: 1.9rem; line-height: 1.1; }
@@ -2337,7 +2336,7 @@ h1, h2, h3 {
 .fb-respostas { display: grid; gap: 10px; margin-top: 12px; }
 .fb-resposta { background: var(--paper); border-left: 3px solid var(--accent); border-radius: var(--radius-sm); padding: 10px 14px; margin-left: 18px; }
 .fb-resposta-topo { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.fb-resposta-topo .comentario-del { margin: 0 0 0 auto; }
+.fb-resposta-topo .comentario-del { margin: 0; }
 .fb-resposta p { margin: 6px 0 0; white-space: pre-line; overflow-wrap: anywhere; }
 .fb-form-resp { margin-top: 12px; }
 .fb-form-resp textarea { width: 100%; border: 1px solid var(--line-strong); border-radius: var(--radius-sm); padding: 10px 12px; font: inherit; resize: vertical; background: var(--card); }
@@ -2353,5 +2352,20 @@ h1, h2, h3 {
 .comentario-resposta { background: var(--paper); border-left: 3px solid var(--accent); border-radius: var(--radius-sm); padding: 10px 14px; margin: 10px 0 0 18px; }
 .comentario-resposta p { margin: 4px 0 0; }
 .admin-td-material .muted.small { display: block; }
+
 /* Atalho "Vendas, avaliações e comentários" no painel do admin: afastado do topo laranja */
 .admin-atalho { margin: 28px 0 8px; }
+.comentario-acoes { display: flex; gap: 14px; margin-top: 8px; }
+.comentario-acoes .comentario-del, .comentario-acoes .comentario-edit { margin-top: 0; }
+.comentario-edit { background: none; border: none; color: var(--accent-dark); font-size: 0.8rem; font-weight: 700; cursor: pointer; padding: 0; }
+.comentario-editar { margin-top: 8px; }
+.comentario-editar textarea { width: 100%; min-height: 80px; border: 1px solid var(--line-strong); border-radius: var(--radius-sm); padding: 10px 12px; font: inherit; resize: vertical; background: var(--card); }
+.comentario-editar textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.comentario-editar .linha { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
+.fb-acoes { display: inline-flex; gap: 14px; margin-left: auto; align-items: center; }
+.fb-resposta-topo .fb-acoes .comentario-del, .fb-resposta-topo .fb-acoes .comentario-edit { margin: 0; }
+.fb-coment > .fb-acoes { display: flex; margin: 8px 0 0; }
+.fb-editar { margin-top: 8px; }
+.fb-editar textarea { width: 100%; min-height: 70px; border: 1px solid var(--line-strong); border-radius: var(--radius-sm); padding: 10px 12px; font: inherit; resize: vertical; background: var(--card); }
+.fb-editar textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.fb-editar .linha { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }

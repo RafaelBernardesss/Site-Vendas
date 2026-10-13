@@ -33,6 +33,7 @@ async function listar(req, res, next) {
 /** POST /api/carrinho { materialId } */
 async function adicionar(req, res, next) {
   try {
+    if (req.user.role === 'ADMIN') throw ApiError.forbidden('Administradores não podem comprar materiais.');
     const materialId = Number(req.body.materialId);
     const material = await prisma.material.findUnique({ where: { id: materialId } });
     if (!material) throw ApiError.notFound('Material não encontrado.');

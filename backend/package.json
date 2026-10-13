@@ -5,6 +5,7 @@
   "description": "API da SlideHub — Express + Prisma + SQLite + Pix",
   "main": "src/server.js",
   "scripts": {
+    "predev": "prisma generate && prisma migrate deploy",
     "dev": "node --watch src/server.js",
     "start": "node scripts/iniciar.js",
     "build": "prisma generate && prisma migrate deploy && node prisma/seed.js",

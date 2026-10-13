@@ -17,6 +17,9 @@ function botao(m) {
     const href = m.arquivoId ? `/api/downloads/arquivo/${m.arquivoId}` : `/api/downloads/material/${m.id}`;
     return `<a class="btn btn-pix btn-block" href="${href}">${SVG_DOWNLOAD}<span>Download</span></a>`;
   }
+  if (state.user && state.user.role === 'ADMIN') {
+    return `<span class="btn btn btn-outline btn-block" style="cursor:default;opacity:.7" aria-disabled="true">Admin não compra</span>`;
+  }
   if (m.noCarrinho) {
     return `<a class="btn btn-outline btn-block" href="/carrinho">${SVG_CART}<span>No carrinho</span></a>`;
   }

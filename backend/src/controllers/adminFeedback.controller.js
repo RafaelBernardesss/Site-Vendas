@@ -28,7 +28,7 @@ async function resumo(req, res, next) {
       compradoresPorMaterial(),
       prisma.avaliacao.findMany({ select: { materialId: true, nota: true } }),
       prisma.comentario.findMany({
-        select: { materialId: true, _count: { select: { respostas: true } } },
+        select: { materialId: true, user: { select: { role: true } }, _count: { select: { respostas: true } } },
       }),
     ]);
 
@@ -44,7 +44,7 @@ async function resumo(req, res, next) {
     for (const c of comentarios) {
       const x = coment.get(c.materialId) || { total: 0, semResposta: 0 };
       x.total += 1;
-      if (c._count.respostas === 0) x.semResposta += 1;
+      if (c._count.respostas === 0 && c.user.role !== 'ADMIN') x.semResposta += 1;
       coment.set(c.materialId, x);
     }
 
@@ -179,6 +179,7 @@ async function formatarComentarios(comentarios) {
       texto: r.texto,
       createdAt: r.createdAt,
       autor: r.user.nome,
+      autorId: r.user.id,
       admin: r.user.role === 'ADMIN',
     })),
   }));
@@ -193,7 +194,10 @@ async function listarComentarios(req, res, next) {
     const { materialId, status = 'todos', q, pagina = 1, limite = 20 } = req.query;
     const where = {};
     if (materialId) where.materialId = Number(materialId);
-    if (status === 'pendentes') where.respostas = { none: {} };
+    if (status === 'pendentes') {
+      where.respostas = { none: {} };
+      where.user = { role: { not: 'ADMIN' } }; // comentários da própria loja não precisam de resposta
+    }
     if (status === 'respondidos') where.respostas = { some: {} };
     if (q && String(q).trim()) {
       const t = String(q).trim();
@@ -238,8 +242,26 @@ async function responder(req, res, next) {
       texto: r.texto,
       createdAt: r.createdAt,
       autor: req.user.nome,
+      autorId: req.user.id,
       admin: true,
     });
+  } catch (err) {
+    next(err);
+  }
+}
+
+/** PUT /api/admin/respostas/:id { texto } — o admin edita apenas as respostas que ele mesmo escreveu. */
+async function editarResposta(req, res, next) {
+  try {
+    const id = Number(req.params.id);
+    const r = await prisma.resposta.findUnique({ where: { id } });
+    if (!r) throw ApiError.notFound('Resposta não encontrada.');
+    if (r.userId !== req.user.id) throw ApiError.forbidden('Você só pode editar as suas respostas.');
+    const texto = String(req.body.texto || '').trim();
+    if (texto.length < 2) throw ApiError.badRequest('Escreva a resposta (mínimo 2 caracteres).');
+    if (texto.length > 1000) throw ApiError.badRequest('A resposta pode ter no máximo 1000 caracteres.');
+    await prisma.resposta.update({ where: { id }, data: { texto } });
+    res.json({ ok: true, texto });
   } catch (err) {
     next(err);
   }
@@ -258,4 +280,4 @@ async function excluirResposta(req, res, next) {
   }
 }
 
-module.exports = { resumo, compradores, listarComentarios, responder, excluirResposta };
+module.exports = { resumo, compradores, listarComentarios, responder, editarResposta, excluirResposta };

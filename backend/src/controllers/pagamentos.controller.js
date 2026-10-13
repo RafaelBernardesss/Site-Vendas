@@ -37,6 +37,7 @@ async function confirmarPagamento(orderId, txid) {
 /** POST /api/pagamentos/criar { nomeCompleto, cpf } */
 async function criar(req, res, next) {
   try {
+    if (req.user.role === 'ADMIN') throw ApiError.forbidden('Administradores não podem comprar materiais.');
     const { nomeCompleto, cpf } = req.body;
 
     const itens = await prisma.cartItem.findMany({

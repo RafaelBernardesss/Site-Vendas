@@ -125,6 +125,22 @@ async function excluirComentario(req, res, next) {
   }
 }
 
+/** PUT /api/materiais/comentarios/:comentarioId { texto } — somente o autor edita. */
+async function editarComentario(req, res, next) {
+  try {
+    const c = await prisma.comentario.findUnique({ where: { id: Number(req.params.comentarioId) } });
+    if (!c) throw ApiError.notFound('Comentário não encontrado.');
+    if (c.userId !== req.user.id) throw ApiError.forbidden('Você só pode editar os seus comentários.');
+    const texto = String(req.body.texto || '').trim();
+    if (texto.length < 3) throw ApiError.badRequest('Escreva pelo menos 3 caracteres.');
+    if (texto.length > 1000) throw ApiError.badRequest('O comentário pode ter no máximo 1000 caracteres.');
+    await prisma.comentario.update({ where: { id: c.id }, data: { texto } });
+    res.json({ ok: true, texto });
+  } catch (err) {
+    next(err);
+  }
+}
+
 /** PUT /api/materiais/:id/avaliacao { nota: 1..5 } — somente quem comprou, uma única vez. */
 async function avaliar(req, res, next) {
   try {
@@ -157,4 +173,4 @@ async function avaliar(req, res, next) {
   }
 }
 
-module.exports = { listarComentarios, criarComentario, excluirComentario, avaliar };
+module.exports = { listarComentarios, criarComentario, editarComentario, excluirComentario, avaliar };

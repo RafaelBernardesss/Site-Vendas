@@ -18,6 +18,9 @@ function botaoCompra() {
     const href = m.arquivoId ? `/api/downloads/arquivo/${m.arquivoId}` : `/api/downloads/material/${m.id}`;
     return `<a class="btn btn-pix btn-lg btn-block" href="${href}">${SVG_DOWNLOAD}<span>Download</span></a>`;
   }
+  if (state.user && state.user.role === 'ADMIN') {
+    return `<span class="btn btn btn-outline btn-lg btn-block" style="cursor:default;opacity:.7" aria-disabled="true">Admin não compra</span>`;
+  }
   if (m.noCarrinho) {
     return `<a class="btn btn-outline btn-lg btn-block" href="/carrinho">${SVG_CART}<span>No carrinho — ir para o pagamento</span></a>`;
   }
@@ -109,7 +112,10 @@ function comentarioHtml(c) {
     </div>
     <p>${escapeHtml(c.texto)}</p>
     ${(c.respostas || []).map((r) => `<div class="comentario-resposta"><div class="comentario-topo"><strong>${escapeHtml(r.autor)}</strong>${r.admin ? '<span class="selo loja">Loja</span>' : ''}<span class="comentario-data">${dataBr(r.createdAt)}</span></div><p>${escapeHtml(r.texto)}</p></div>`).join('')}
-    ${c.podeExcluir ? `<button class="comentario-del" data-del="${c.id}">Excluir</button>` : ''}
+    <div class="comentario-acoes">
+      ${c.meu ? `<button class="comentario-edit" data-edit="${c.id}">Editar</button>` : ''}
+      ${c.podeExcluir ? `<button class="comentario-del" data-del="${c.id}">Excluir</button>` : ''}
+    </div>
   </article>`;
 }
 
@@ -273,6 +279,40 @@ root.addEventListener('click', async (e) => {
         } catch { /* mantém a tela como está */ }
       }
     }
+    return;
+  }
+
+  // Editar comentário (próprio): troca o texto por uma caixa de edição
+  const edit = e.target.closest('[data-edit]');
+  if (edit) {
+    const card = edit.closest('.comentario');
+    const p = card.querySelector(':scope > p');
+    const atual = p.textContent;
+    const form = document.createElement('form');
+    form.className = 'comentario-editar';
+    form.innerHTML = `<textarea maxlength="1000" aria-label="Editar comentário"></textarea>
+      <div class="linha"><button type="button" class="btn btn-ghost btn-sm" data-edit-cancel>Cancelar</button>
+      <button type="submit" class="btn btn-primary btn-sm">Salvar</button></div>`;
+    form.querySelector('textarea').value = atual;
+    p.replaceWith(form);
+    card.querySelector('.comentario-acoes').hidden = true;
+    form.querySelector('textarea').focus();
+    form.querySelector('[data-edit-cancel]').addEventListener('click', () => carregarComentarios());
+    form.addEventListener('submit', async (ev) => {
+      ev.preventDefault();
+      const texto = form.querySelector('textarea').value.trim();
+      if (texto.length < 3) return toast('Escreva pelo menos 3 caracteres.', 'error');
+      const salvar = form.querySelector('[type="submit"]');
+      salvar.disabled = true;
+      try {
+        await api.put(`/api/materiais/comentarios/${edit.dataset.edit}`, { texto });
+        toast('Comentário atualizado.', 'success');
+        carregarComentarios();
+      } catch (err) {
+        toast(err.message, 'error');
+        salvar.disabled = false;
+      }
+    });
     return;
   }
 

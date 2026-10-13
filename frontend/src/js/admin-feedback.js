@@ -126,7 +126,8 @@ function respostaHtml(r) {
   return `<div class="fb-resposta" data-rid="${r.id}">
     <div class="fb-resposta-topo"><span class="selo loja">${r.admin ? 'Loja' : 'Cliente'}</span>
       <strong>${escapeHtml(r.autor)}</strong><span class="muted small">${dataHora(r.createdAt)}</span>
-      <button class="comentario-del" data-del-resp="${r.id}">Excluir</button></div>
+      <span class="fb-acoes">${r.autorId === state.user.id ? `<button class="comentario-edit" data-edit-resp="${r.id}">Editar</button>` : ''}
+      <button class="comentario-del" data-del-resp="${r.id}">Excluir</button></span></div>
     <p>${escapeHtml(r.texto)}</p></div>`;
 }
 
@@ -145,7 +146,8 @@ function comentarioCard(c) {
     </div>
     <div class="fb-material muted small">Em: <a href="/produto?id=${c.material.id}" target="_blank" rel="noopener">${escapeHtml(c.material.titulo)}</a>
       ${pend ? '<span class="fb-badge">Sem resposta</span>' : ''}</div>
-    <p>${escapeHtml(c.texto)}</p>
+    <p class="fb-texto">${escapeHtml(c.texto)}</p>
+    ${c.autor.id === state.user.id ? `<div class="fb-acoes"><button class="comentario-edit" data-edit-coment="${c.id}">Editar</button></div>` : ''}
     <div class="fb-respostas">${c.respostas.map(respostaHtml).join('')}</div>
     <form class="fb-form-resp" data-cid="${c.id}">
       <textarea maxlength="1000" rows="2" placeholder="Escreva uma resposta ao cliente…" aria-label="Resposta"></textarea>
@@ -246,6 +248,44 @@ async function carregarResumoSilencioso() {
   } catch { /* ignora */ }
 }
 
+/** Troca o texto por uma caixa de edição; salva por PUT e atualiza o texto na tela. */
+function editarInline(container, p, url, min) {
+  if (container.querySelector(':scope > .fb-editar')) return;
+  const original = p.textContent;
+  const form = document.createElement('form');
+  form.className = 'fb-editar';
+  form.innerHTML = `<textarea maxlength="1000" aria-label="Editar mensagem"></textarea>
+    <div class="linha"><button type="button" class="btn btn-ghost btn-sm" data-cancel>Cancelar</button>
+    <button type="submit" class="btn btn-primary btn-sm">Salvar</button></div>`;
+  const ta = form.querySelector('textarea');
+  ta.value = original;
+  p.hidden = true;
+  p.after(form);
+  ta.focus();
+  const fechar = () => { form.remove(); p.hidden = false; };
+  form.querySelector('[data-cancel]').addEventListener('click', fechar);
+  form.addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const texto = ta.value.trim();
+    if (texto.length < min) return toast(`Escreva pelo menos ${min} caracteres.`, 'error');
+    const salvar = form.querySelector('[type="submit"]');
+    salvar.disabled = true;
+    try {
+      await api.put(url, { texto });
+      p.textContent = texto;
+      fechar();
+      toast('Mensagem atualizada.', 'success');
+    } catch (err) {
+      toast(err.message, 'error');
+      salvar.disabled = false;
+    }
+  });
+  ta.addEventListener('keydown', (ev) => {
+    if (ev.key === 'Enter' && (ev.ctrlKey || ev.metaKey)) { ev.preventDefault(); form.requestSubmit(); }
+    if (ev.key === 'Escape') fechar();
+  });
+}
+
 /* ---------------- Eventos ---------------- */
 document.addEventListener('click', async (e) => {
   const tab = e.target.closest('.fb-tab');
@@ -256,6 +296,17 @@ document.addEventListener('click', async (e) => {
 
   const ver = e.target.closest('[data-ver-coment]');
   if (ver) return irParaComentarios({ materialId: ver.dataset.verComent });
+
+  const edR = e.target.closest('[data-edit-resp]');
+  if (edR) {
+    const box = edR.closest('.fb-resposta');
+    return editarInline(box, box.querySelector(':scope > p'), `/api/admin/respostas/${edR.dataset.editResp}`, 2);
+  }
+  const edC = e.target.closest('[data-edit-coment]');
+  if (edC) {
+    const card = edC.closest('.comentario');
+    return editarInline(card, card.querySelector(':scope > .fb-texto'), `/api/materiais/comentarios/${edC.dataset.editComent}`, 3);
+  }
 
   const del = e.target.closest('[data-del-resp]');
   if (del) {

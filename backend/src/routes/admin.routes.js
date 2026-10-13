@@ -73,6 +73,11 @@ router.post(
   validate({ params: idP, body: z.object({ texto: z.string() }) }),
   fb.responder
 );
+router.put(
+  '/respostas/:id',
+  validate({ params: idP, body: z.object({ texto: z.string() }) }),
+  fb.editarResposta
+);
 router.delete('/respostas/:id', validate({ params: idP }), fb.excluirResposta);
 
 module.exports = router;
