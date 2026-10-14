@@ -49,6 +49,33 @@ function cardHtml(m) {
   </article>`;
 }
 
+let todos = [];
+let filtroTipo = 'TODOS';
+
+function pintar() {
+  const termo = new URLSearchParams(location.search).get('q')?.trim();
+  let lista = todos;
+  if (termo) {
+    lista = lista.filter((m) =>
+      semAcento(`${m.titulo} ${m.descricao || ''} ${LABEL_TIPO[m.tipo] || ''}`).includes(semAcento(termo)));
+    document.getElementById('vitrine-titulo').innerHTML = 'Resultados <span>da busca</span>';
+    document.getElementById('vitrine-sub').textContent =
+      `${lista.length} material(is) encontrado(s) para “${termo}”.`;
+  }
+  if (filtroTipo !== 'TODOS') lista = lista.filter((m) => m.tipo === filtroTipo);
+  if (!lista.length) {
+    grid.innerHTML = emptyState({
+      titulo: 'Nada encontrado',
+      texto: 'Tente outra palavra ou volte para ver todos os materiais.',
+      acaoHref: '/',
+      acaoLabel: 'Ver todos os materiais',
+      icone: 'box',
+    });
+    return;
+  }
+  grid.innerHTML = lista.map(cardHtml).join('');
+}
+
 async function render() {
   grid.innerHTML = skeletonGrid(8);
   try {
@@ -61,30 +88,26 @@ async function render() {
       });
       return;
     }
-    const termo = new URLSearchParams(location.search).get('q')?.trim();
-    const lista = termo
-      ? materiais.filter((m) =>
-          semAcento(`${m.titulo} ${m.descricao || ''} ${LABEL_TIPO[m.tipo] || ''}`).includes(semAcento(termo)))
-      : materiais;
-    if (termo) {
-      document.getElementById('vitrine-titulo').innerHTML = 'Resultados <span>da busca</span>';
-      document.getElementById('vitrine-sub').textContent =
-        `${lista.length} material(is) encontrado(s) para “${termo}”.`;
-    }
-    if (!lista.length) {
-      grid.innerHTML = emptyState({
-        titulo: 'Nada encontrado',
-        texto: 'Tente outra palavra ou volte para ver todos os materiais.',
-        acaoHref: '/',
-        acaoLabel: 'Ver todos os materiais',
-        icone: 'box',
-      });
-      return;
-    }
-    grid.innerHTML = lista.map(cardHtml).join('');
+    todos = materiais;
+    pintar();
   } catch (err) {
     grid.innerHTML = emptyState({ titulo: 'Não foi possível carregar', texto: err.message, icone: 'alert' });
   }
+}
+
+const filtros = document.getElementById('filtros');
+if (filtros) {
+  filtros.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-tipo]');
+    if (!b) return;
+    filtroTipo = b.dataset.tipo;
+    filtros.querySelectorAll('.filtro').forEach((x) => {
+      const on = x === b;
+      x.classList.toggle('active', on);
+      x.setAttribute('aria-pressed', String(on));
+    });
+    pintar();
+  });
 }
 
 grid.addEventListener('click', async (e) => {

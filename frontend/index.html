@@ -2,7 +2,8 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#e4572e" />
   <title>SlideHub — Materiais digitais de PowerPoint e imagens</title>
   <meta name="description" content="Templates de PowerPoint e packs de imagens prontos para usar. Pagamento via Pix e download imediato." />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23E4572E'/%3E%3Cpath d='M18 42l10-20 10 20' stroke='white' stroke-width='5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M23 34h10' stroke='white' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E" />
@@ -13,12 +14,23 @@
 </head>
 <body>
   <div id="site-header"></div>
+  <div class="beneficios" aria-label="Vantagens da loja">
+    <div><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 3L5 14h6l-1 7 8-11h-6z"/></svg><span>Pague com Pix</span></div>
+    <div><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 21h16"/></svg><span>Baixe na hora</span></div>
+    <div><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.500 8-8 9-4.500-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg><span>Compra segura</span></div>
+  </div>
   <main class="page">
     <!-- Vitrine -->
     <section class="vitrine" id="vitrine">
       <div class="container">
         <h2 class="titulo-secao" id="vitrine-titulo">Nossa <span>vitrine</span></h2>
         <p class="subtitulo-secao" id="vitrine-sub">Escolha um material, pague com Pix e faça o download em segundos.</p>
+        <div class="filtros" id="filtros" role="group" aria-label="Filtrar por tipo de material">
+          <button type="button" class="filtro active" data-tipo="TODOS" aria-pressed="true">Todos</button>
+          <button type="button" class="filtro" data-tipo="POWERPOINT" aria-pressed="false">PowerPoint</button>
+          <button type="button" class="filtro" data-tipo="IMAGENS" aria-pressed="false">Imagens</button>
+          <button type="button" class="filtro" data-tipo="MISTO" aria-pressed="false">PPT + Imagens</button>
+        </div>
         <div id="vitrine-grid" class="grid" aria-live="polite"></div>
       </div>
     </section>

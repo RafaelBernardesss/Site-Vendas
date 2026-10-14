@@ -101,6 +101,23 @@ const NAV_ICONS = {
   carrinho: `<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M5 8h6l5 22h20l4-15H14" fill="#fff3e6" stroke="${INK}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 15h26l-4 15H16z" fill="#ffb27a" stroke="${INK}" stroke-width="2" stroke-linejoin="round"/><circle cx="19" cy="39" r="3" fill="#e4572e" stroke="${INK}" stroke-width="2"/><circle cx="33" cy="39" r="3" fill="#e4572e" stroke="${INK}" stroke-width="2"/></svg>`,
 };
 
+/* Ícones simples (traço) da barra de abas do celular */
+const TAB_ICONS = {
+  inicio: '<path d="M3 11l9-8 9 8v9a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1z"/>',
+  materiais: '<path d="M4 5c3-1 6-1 8 1v13c-2-2-5-2-8-1zM20 5c-3-1-6-1-8 1v13c2-2 5-2 8-1z"/>',
+  meus: '<path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><path d="M12 10v6m0 0l-2.5-2.5M12 16l2.5-2.5"/>',
+  carrinho: '<path d="M4 6h2l2.4 10.4a1 1 0 001 .6h8.4a1 1 0 001-.8L20.5 9H7"/><circle cx="10" cy="20" r="1.6"/><circle cx="17" cy="20" r="1.6"/>',
+  conta: '<circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/>',
+  painel: '<rect x="3" y="3" width="8" height="10" rx="1.5"/><rect x="13" y="3" width="8" height="6" rx="1.5"/><rect x="13" y="11" width="8" height="10" rx="1.5"/><rect x="3" y="15" width="8" height="6" rx="1.5"/>',
+};
+
+function tab(href, icone, label, { ativo = false, extra = '' } = {}) {
+  return `<a class="tab ${ativo ? 'active' : ''}" href="${href}"${ativo ? ' aria-current="page"' : ''}>
+    <span class="tab-ico"><svg viewBox="0 0 24 24" aria-hidden="true">${TAB_ICONS[icone]}</svg>${extra}</span>
+    <span class="tab-label">${label}</span>
+  </a>`;
+}
+
 const LOGO =
   '<svg class="brand-mark" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="16" fill="#E4572E"/><path d="M18 42l10-20 10 20" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M23 34h10" stroke="#fff" stroke-width="5" stroke-linecap="round"/></svg>';
 
@@ -123,8 +140,11 @@ export function renderHeader() {
     .join('');
 
   const badge = '<span class="cart-count" data-cart-count hidden>0</span>';
+  /* produto e checkout ficam em tela cheia (com barra de compra própria) */
+  const semAbas = /^\/(produto|checkout)/.test(rota);
 
   el.innerHTML = `
+  <header class="site-header">
     <div class="header-main">
       <div class="container header-grid">
         <div class="header-member">
@@ -137,6 +157,7 @@ export function renderHeader() {
             <span class="brand-tag">materiais digitais</span>
           </span>
         </a>
+        <a class="hdr-cart" href="/carrinho" aria-label="Ver carrinho">${SVG_CART}${badge}</a>
         <form class="site-search" action="/" method="get" role="search">
           <input type="search" name="q" value="${escapeHtml(q)}" placeholder="Buscar Materiais" aria-label="Buscar no site" />
           <button type="submit" aria-label="Buscar">${SEARCH_ICON}</button>
@@ -162,15 +183,27 @@ export function renderHeader() {
   <a class="fab-cart" href="/carrinho" aria-label="Ver carrinho">
     ${SVG_CART}
     ${badge}
-  </a>`;
+  </a>
 
-  if (u) wireUserMenu(u);
+  ${semAbas ? '' : `<nav class="tabbar" aria-label="Menu do aplicativo">
+    ${tab('/', 'inicio', 'Início', { ativo: rota === '/' })}
+    ${tab('/#vitrine', 'materiais', 'Materiais')}
+    ${u
+      ? tab('/meus-materiais', 'meus', 'Meus', { ativo: rota === '/meus-materiais' })
+      : tab('/login', 'conta', 'Entrar', { ativo: rota === '/login' || rota === '/cadastro' })}
+    ${u && u.role === 'ADMIN' ? tab('/admin', 'painel', 'Painel', { ativo: rota.startsWith('/admin') }) : ''}
+    ${tab('/carrinho', 'carrinho', 'Carrinho', { ativo: rota === '/carrinho', extra: badge })}
+  </nav>`}`;
+
+  document.body.classList.toggle('sem-tabbar', semAbas);
+
+  if (u) wireUserMenu();
 }
 
 function userMenuHtml(u) {
   return `
   <div class="user-menu">
-    <button class="user-btn" id="user-btn" aria-haspopup="true" aria-expanded="false" aria-label="Menu do usuário">
+    <button type="button" class="user-btn" id="user-btn" aria-haspopup="true" aria-expanded="false" aria-label="Menu do usuário">
       <span class="avatar" aria-hidden="true">${iniciais(u.nome)}</span>
       <span class="user-nome">${escapeHtml(u.nome.split(' ')[0])}</span>
       <svg viewBox="0 0 24 24" class="chev" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
@@ -183,21 +216,29 @@ function userMenuHtml(u) {
   </div>`;
 }
 
-function wireUserMenu(u) {
+function wireUserMenu() {
   const btn = document.getElementById('user-btn');
   const dd = document.getElementById('user-dropdown');
   if (!btn || !dd) return;
 
-  btn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    const fechara = !dd.hidden;
-    dd.hidden = fechara;
-    btn.setAttribute('aria-expanded', String(!fechara));
-  });
-  document.addEventListener('click', () => {
+  const fecha = () => {
     dd.hidden = true;
     btn.setAttribute('aria-expanded', 'false');
+  };
+
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const fechar = !dd.hidden;
+    dd.hidden = fechar;
+    btn.setAttribute('aria-expanded', String(!fechar));
   });
+  dd.addEventListener('click', (e) => e.stopPropagation());
+  document.addEventListener('click', fecha);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') fecha();
+  });
+  window.addEventListener('resize', fecha);
+
   document.getElementById('btn-sair').addEventListener('click', async () => {
     try {
       await api.post('/api/auth/sair');
@@ -217,7 +258,7 @@ export function renderFooter() {
   el.innerHTML = `
   <footer class="site-footer">
     <svg class="footer-wave" viewBox="0 0 1440 40" preserveAspectRatio="none" aria-hidden="true">
-      <path d="M0 18c120-14 240-18 360-10s240 24 360 22 240-22 360-24 240 10 360 20v14H0z" fill="#fff"/>
+      <path d="M0 18c120-14 240-18 360-10s240 24 360 22 240-22 360-24 240 10 360 20V0H0z" fill="#fff"/>
     </svg>
     <div class="container footer-inner">
       <div class="footer-brand">

@@ -9,6 +9,8 @@ const root = document.getElementById('produto-root');
 const id = Number(new URLSearchParams(location.search).get('id'));
 const LABEL_TIPO = { POWERPOINT: 'PowerPoint', IMAGENS: 'Imagens', MISTO: 'PowerPoint + Imagens' };
 
+document.body.classList.add('pg-produto');
+
 let m = null; // material carregado
 let fotoAtual = 0;
 
@@ -40,12 +42,15 @@ function galeriaHtml() {
        <button class="galeria-nav next" data-nav="1" aria-label="Próxima foto">›</button>
        <span class="galeria-count" id="galeria-count">${fotoAtual + 1} / ${fotos.length}</span>`
     : '';
+  const dots = fotos.length > 1
+    ? `<span class="galeria-dots" aria-hidden="true">${fotos.map((_, i) => `<i class="${i === fotoAtual ? 'on' : ''}"></i>`).join('')}</span>`
+    : '';
   const thumbs = fotos.length > 1
     ? `<div class="galeria-thumbs">${fotos
         .map((f, i) => `<button class="galeria-thumb ${i === fotoAtual ? 'ativa' : ''}" data-foto="${i}" aria-label="Ver foto ${i + 1}"><img src="${f}" alt="" loading="lazy" /></button>`)
         .join('')}</div>`
     : '';
-  return `<div class="galeria-main"><img id="galeria-img" src="${fotos[fotoAtual]}" alt="Foto ${fotoAtual + 1} de ${escapeHtml(m.titulo)}" />${nav}</div>${thumbs}`;
+  return `<div class="galeria-main"><img id="galeria-img" src="${fotos[fotoAtual]}" alt="Foto ${fotoAtual + 1} de ${escapeHtml(m.titulo)}" />${nav}${dots}</div>${thumbs}`;
 }
 
 function atualizarGaleria() {
@@ -182,7 +187,10 @@ function render() {
       <div class="rating-inline" id="rating-topo">${ratingTopoHtml()}</div>
       <div class="produto-preco">${money(m.preco)}</div>
       <p class="muted small" style="margin:0 0 14px">Pagamento via Pix · download imediato após a confirmação</p>
-      <div id="acao-compra">${botaoCompra()}</div>
+      <div class="buybar">
+        <div class="buybar-preco"><small>Pix · download imediato</small><strong>${money(m.preco)}</strong></div>
+        <div id="acao-compra">${botaoCompra()}</div>
+      </div>
       <p class="produto-desc">${m.descricao ? escapeHtml(m.descricao) : '<span class="muted">O vendedor não adicionou uma descrição.</span>'}</p>
       ${pacote}
       <p class="produto-garantia">🔒 Acesso protegido pela sua conta. Só quem compra consegue baixar os arquivos.</p>
@@ -216,6 +224,26 @@ async function carregar() {
     });
   }
 }
+
+/* ---------------- Deslizar fotos no celular ---------------- */
+let toqueX = null;
+let toqueY = null;
+root.addEventListener('touchstart', (e) => {
+  if (!e.target.closest('.galeria-main')) return;
+  toqueX = e.touches[0].clientX;
+  toqueY = e.touches[0].clientY;
+}, { passive: true });
+root.addEventListener('touchend', (e) => {
+  if (toqueX === null) return;
+  const dx = e.changedTouches[0].clientX - toqueX;
+  const dy = e.changedTouches[0].clientY - toqueY;
+  toqueX = null;
+  if (!m || !m.galeria || m.galeria.length < 2) return;
+  if (Math.abs(dx) < 45 || Math.abs(dx) < Math.abs(dy)) return;
+  const n = m.galeria.length;
+  fotoAtual = (fotoAtual + (dx < 0 ? 1 : -1) + n) % n;
+  atualizarGaleria();
+}, { passive: true });
 
 /* ---------------- Eventos ---------------- */
 root.addEventListener('click', async (e) => {
