@@ -50,11 +50,46 @@ function galeriaHtml() {
         .map((f, i) => `<button class="galeria-thumb ${i === fotoAtual ? 'ativa' : ''}" data-foto="${i}" aria-label="Ver foto ${i + 1}"><img src="${f}" alt="" loading="lazy" /></button>`)
         .join('')}</div>`
     : '';
-  return `<div class="galeria-main"><img id="galeria-img" src="${fotos[fotoAtual]}" alt="Foto ${fotoAtual + 1} de ${escapeHtml(m.titulo)}" />${nav}${dots}</div>${thumbs}`;
+  const slides = fotos
+    .map((f, i) => `<img class="galeria-slide" src="${f}" alt="Foto ${i + 1} de ${escapeHtml(m.titulo)}" draggable="false" ${i === 0 ? '' : 'loading="lazy"'} />`)
+    .join('');
+  return `<div class="galeria-main" id="galeria-main"><div class="galeria-track" id="galeria-track" style="transform:translate3d(${-fotoAtual * 100}%,0,0)">${slides}</div>${nav}${dots}</div>${thumbs}`;
 }
 
-function atualizarGaleria() {
-  document.getElementById('galeria').innerHTML = galeriaHtml();
+/* Move a faixa para a foto atual. `deslocPx` acompanha o dedo/mouse durante o arraste. */
+function aplicarPosicao(animar, deslocPx = 0) {
+  const track = document.getElementById('galeria-track');
+  if (!track) return;
+  track.style.transition = animar ? '' : 'none';
+  track.style.transform = `translate3d(calc(${-fotoAtual * 100}% + ${deslocPx}px),0,0)`;
+}
+
+function atualizarIndicadores() {
+  const n = m.galeria.length;
+  const cont = document.getElementById('galeria-count');
+  if (cont) cont.textContent = `${fotoAtual + 1} / ${n}`;
+  document.querySelectorAll('#galeria .galeria-dots i').forEach((d, i) => d.classList.toggle('on', i === fotoAtual));
+  document.querySelectorAll('#galeria .galeria-thumb').forEach((t, i) => t.classList.toggle('ativa', i === fotoAtual));
+}
+
+function irParaFoto(i) {
+  const n = m.galeria.length;
+  if (!n) return;
+  fotoAtual = ((i % n) + n) % n;
+  aplicarPosicao(true);
+  atualizarIndicadores();
+}
+
+function abrirLightbox() {
+  if (document.querySelector('.lightbox')) return;
+  const box = document.createElement('div');
+  box.className = 'lightbox';
+  box.innerHTML = `<img src="${m.galeria[fotoAtual]}" alt="" />`;
+  const fecha = () => { box.remove(); document.removeEventListener('keydown', esc); };
+  const esc = (ev) => { if (ev.key === 'Escape') fecha(); };
+  box.addEventListener('click', fecha);
+  document.addEventListener('keydown', esc);
+  document.body.appendChild(box);
 }
 
 /* ---------------- Avaliações ---------------- */
@@ -78,7 +113,7 @@ function avaliarBoxHtml() {
     return `<p class="aviso-compra"><a href="/login?next=${encodeURIComponent(location.pathname + location.search)}">Entre na sua conta</a> para avaliar este material depois de comprar.</p>`;
   }
   if (!m.comprado) {
-    return '<p class="aviso-compra">🔒 Somente quem comprou pode avaliar. Assim todas as notas são de clientes reais.</p>';
+    return '<p class="aviso-compra">🔒 Somente quem comprou pode avaliar</p>';
   }
   // Já avaliou: a nota é definitiva, então mostra só as estrelas (sem botões).
   if (m.minhaNota) {
@@ -193,7 +228,7 @@ function render() {
       </div>
       <p class="produto-desc">${m.descricao ? escapeHtml(m.descricao) : '<span class="muted">O vendedor não adicionou uma descrição.</span>'}</p>
       ${pacote}
-      <p class="produto-garantia">🔒 Acesso protegido pela sua conta. Só quem compra consegue baixar os arquivos.</p>
+      <p class="produto-garantia">🔒 Acesso protegido. Só quem compra consegue baixar os arquivos.</p>
     </div>
   </div>
 
@@ -225,46 +260,74 @@ async function carregar() {
   }
 }
 
-/* ---------------- Deslizar fotos no celular ---------------- */
-let toqueX = null;
-let toqueY = null;
-root.addEventListener('touchstart', (e) => {
-  if (!e.target.closest('.galeria-main')) return;
-  toqueX = e.touches[0].clientX;
-  toqueY = e.touches[0].clientY;
-}, { passive: true });
-root.addEventListener('touchend', (e) => {
-  if (toqueX === null) return;
-  const dx = e.changedTouches[0].clientX - toqueX;
-  const dy = e.changedTouches[0].clientY - toqueY;
-  toqueX = null;
-  if (!m || !m.galeria || m.galeria.length < 2) return;
-  if (Math.abs(dx) < 45 || Math.abs(dx) < Math.abs(dy)) return;
+/* ---------------- Arrastar fotos (celular e computador) ----------------
+   Pointer Events: o mesmo código serve para dedo, mouse e caneta.
+   A foto acompanha o dedo/mouse e, ao soltar, desliza até a foto certa. */
+let arr = null;        // arraste em andamento
+let arrastou = false;  // true se o último gesto foi um arraste (não um clique)
+
+function fimDoArraste(e, cancelado) {
+  if (!arr || e.pointerId !== arr.id) return;
+  const a = arr;
+  arr = null;
+  a.main.classList.remove('arrastando');
+  if (a.main.hasPointerCapture && a.main.hasPointerCapture(a.id)) a.main.releasePointerCapture(a.id);
+  if (!a.horizontal) return; // toque simples (vira clique) ou rolagem vertical
+
   const n = m.galeria.length;
-  fotoAtual = (fotoAtual + (dx < 0 ? 1 : -1) + n) % n;
-  atualizarGaleria();
-}, { passive: true });
+  const dx = e.clientX - a.x0;
+  const veloc = Math.abs(dx) / Math.max(1, performance.now() - a.t0); // px por ms
+  const passou = Math.abs(dx) > a.largura * 0.2 || (Math.abs(dx) > 30 && veloc > 0.4);
+  if (!cancelado && n > 1 && passou) {
+    const alvo = fotoAtual + (dx < 0 ? 1 : -1);
+    if (alvo >= 0 && alvo < n) fotoAtual = alvo;
+  }
+  aplicarPosicao(true);   // anima até a foto (ou volta para a mesma)
+  atualizarIndicadores();
+}
+
+root.addEventListener('pointerdown', (e) => {
+  const main = e.target.closest('.galeria-main');
+  if (!main || e.target.closest('.galeria-nav')) return;
+  if (e.pointerType === 'mouse' && e.button !== 0) return;
+  arrastou = false;
+  arr = { id: e.pointerId, main, x0: e.clientX, y0: e.clientY, largura: main.clientWidth || 1, horizontal: null, t0: performance.now() };
+});
+
+root.addEventListener('pointermove', (e) => {
+  if (!arr || e.pointerId !== arr.id) return;
+  const dx = e.clientX - arr.x0;
+  const dy = e.clientY - arr.y0;
+  if (arr.horizontal === null) {
+    if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return; // ainda pode ser um clique
+    arr.horizontal = Math.abs(dx) > Math.abs(dy);
+    if (arr.horizontal) {
+      arrastou = true;
+      arr.main.classList.add('arrastando');
+      try { arr.main.setPointerCapture(e.pointerId); } catch { /* ok */ }
+    }
+  }
+  if (!arr.horizontal || m.galeria.length < 2) return;
+  const n = m.galeria.length;
+  const naPonta = (fotoAtual === 0 && dx > 0) || (fotoAtual === n - 1 && dx < 0);
+  aplicarPosicao(false, naPonta ? dx * 0.35 : dx); // "elástico" nas pontas
+});
+
+root.addEventListener('pointerup', (e) => fimDoArraste(e, false));
+root.addEventListener('pointercancel', (e) => fimDoArraste(e, true));
 
 /* ---------------- Eventos ---------------- */
 root.addEventListener('click', async (e) => {
   // Galeria
   const thumb = e.target.closest('[data-foto]');
-  if (thumb) { fotoAtual = Number(thumb.dataset.foto); return atualizarGaleria(); }
+  if (thumb) return irParaFoto(Number(thumb.dataset.foto));
   const nav = e.target.closest('[data-nav]');
-  if (nav) {
-    const n = m.galeria.length;
-    fotoAtual = (fotoAtual + Number(nav.dataset.nav) + n) % n;
-    return atualizarGaleria();
-  }
-  if (e.target.id === 'galeria-img') {
-    const box = document.createElement('div');
-    box.className = 'lightbox';
-    box.innerHTML = `<img src="${m.galeria[fotoAtual]}" alt="" />`;
-    const fecha = () => { box.remove(); document.removeEventListener('keydown', esc); };
-    const esc = (ev) => { if (ev.key === 'Escape') fecha(); };
-    box.addEventListener('click', fecha);
-    document.addEventListener('keydown', esc);
-    return document.body.appendChild(box);
+  if (nav) return irParaFoto(fotoAtual + Number(nav.dataset.nav));
+  if (e.target.closest('.galeria-main')) {
+    // Um único clique/toque abre a foto. Se o gesto foi um arraste, não abre.
+    if (arrastou) { arrastou = false; return; }
+    if (m.galeria.length) abrirLightbox();
+    return;
   }
 
   // Comprar
@@ -379,7 +442,7 @@ root.addEventListener('submit', async (e) => {
     carregarComentarios();
   } catch (err) {
     toast(err.message, 'error');
-    if (err.status === 409) carregarComentarios(); // já tinha comentado: troca o formulário pelo aviso
+    if (err.status === 409) carregarComentarios(); 
   } finally {
     btn.disabled = false;
   }

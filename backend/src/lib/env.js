@@ -33,6 +33,7 @@ const env = {
     : path.join(__dirname, '..', '..', 'uploads'),
   UPLOAD_MAX_SIZE_MB: parseInt(process.env.UPLOAD_MAX_SIZE_MB || '25', 10),
   COOKIE_SECURE: process.env.COOKIE_SECURE === 'true',
+  ENCRYPTION_KEY: process.env.ENCRYPTION_KEY || '',
 };
 
 if (env.NODE_ENV === 'production' && env.JWT_SECRET === 'troque-este-segredo-em-producao') {

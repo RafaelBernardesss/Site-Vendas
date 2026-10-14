@@ -1,7 +1,3 @@
-// Prisma + SQLite
-// Obs.: o SQLite não suporta enums nativos — role/status são Strings
-// validadas na aplicação (USER/ADMIN e PENDING/PAID/CANCELED).
-
 generator client {
   provider = "prisma-client-js"
 }

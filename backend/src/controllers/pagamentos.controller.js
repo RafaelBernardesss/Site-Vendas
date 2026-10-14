@@ -4,6 +4,7 @@ const env = require('../lib/env');
 const { ApiError } = require('../lib/errors');
 const pix = require('../services/pix');
 const cpfSvc = require('../services/cpf');
+const cripto = require('../lib/crypto');
 
 /**
  * Confirma o pagamento de um pedido (IDEMPOTENTE):
@@ -65,8 +66,8 @@ async function criar(req, res, next) {
         userId: req.user.id,
         status: 'PENDING',
         total,
-        nomeCompleto,
-        cpf: cpfSvc.soDigitos(cpf),
+        nomeCompleto: cripto.criptografar(nomeCompleto, 'Order.nomeCompleto'),
+        cpf: cripto.criptografar(cpfSvc.soDigitos(cpf), 'Order.cpf'),
         itens: {
           create: itens.map((i) => ({
             materialId: i.material.id,
