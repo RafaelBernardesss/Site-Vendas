@@ -125,10 +125,11 @@ async function abrirCompradores(id) {
 function respostaHtml(r) {
   return `<div class="fb-resposta" data-rid="${r.id}">
     <div class="fb-resposta-topo"><span class="selo loja">${r.admin ? 'Loja' : 'Cliente'}</span>
-      <strong>${escapeHtml(r.autor)}</strong><span class="muted small">${dataHora(r.createdAt)}</span>
+      <strong>${escapeHtml(r.autor)}</strong>
       <span class="fb-acoes">${r.autorId === state.user.id ? `<button class="comentario-edit" data-edit-resp="${r.id}">Editar</button>` : ''}
       <button class="comentario-del" data-del-resp="${r.id}">Excluir</button></span></div>
-    <p>${escapeHtml(r.texto)}</p></div>`;
+    <p>${escapeHtml(r.texto)}</p>
+    <div class="resp-data">${dataHora(r.createdAt)}</div></div>`;
 }
 
 function comentarioCard(c) {

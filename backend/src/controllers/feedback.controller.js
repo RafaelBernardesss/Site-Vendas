@@ -68,6 +68,9 @@ async function listarComentarios(req, res, next) {
           createdAt: r.createdAt,
           admin: r.user.role === 'ADMIN',
           autor: r.user.role === 'ADMIN' ? 'Loja SlideHub' : nomePublico(r.user.nome),
+          // Respostas são da loja: só o admin que escreveu edita; qualquer admin exclui.
+          meu: !!req.user && req.user.id === r.userId,
+          podeExcluir: !!req.user && req.user.role === 'ADMIN',
         })),
         podeExcluir: !!req.user && (req.user.id === c.userId || req.user.role === 'ADMIN'),
       })),

@@ -151,7 +151,7 @@ function comentarioHtml(c) {
       <span class="comentario-data">${dataBr(c.createdAt)}</span>
     </div>
     <p>${escapeHtml(c.texto)}</p>
-    ${(c.respostas || []).map((r) => `<div class="comentario-resposta"><div class="comentario-topo"><strong>${escapeHtml(r.autor)}</strong>${r.admin ? '<span class="selo loja">Loja</span>' : ''}<span class="comentario-data">${dataBr(r.createdAt)}</span></div><p>${escapeHtml(r.texto)}</p></div>`).join('')}
+    ${(c.respostas || []).map((r) => `<div class="comentario-resposta"><div class="comentario-topo"><span class="selo loja">Loja</span><strong>${escapeHtml(r.autor)}</strong>${r.meu || r.podeExcluir ? `<span class="resp-acoes">${r.meu ? `<button class="comentario-edit" data-edit-resp="${r.id}">Editar</button>` : ''}${r.podeExcluir ? `<button class="comentario-del" data-del-resp="${r.id}">Excluir</button>` : ''}</span>` : ''}</div><p>${escapeHtml(r.texto)}</p><div class="resp-data">${dataBr(r.createdAt)}</div></div>`).join('')}
     <div class="comentario-acoes">
       ${c.meu ? `<button class="comentario-edit" data-edit="${c.id}">Editar</button>` : ''}
       ${c.podeExcluir ? `<button class="comentario-del" data-del="${c.id}">Excluir</button>` : ''}
@@ -204,7 +204,7 @@ function comentarioFormHtml() {
 
 /* ---------------- Página ---------------- */
 function render() {
-  document.title = `${m.titulo} · SlideHub`;
+  document.title = `${m.titulo} · EducaPrime`;
   const pacote = m.arquivos.length
     ? `<div class="produto-box"><h2>O que você recebe (${m.arquivos.length} arquivo${m.arquivos.length > 1 ? 's' : ''})</h2>
         <ul class="pacote-lista">${m.arquivos
@@ -373,37 +373,58 @@ root.addEventListener('click', async (e) => {
     return;
   }
 
-  // Editar comentário (próprio): troca o texto por uma caixa de edição
-  const edit = e.target.closest('[data-edit]');
+  // Editar (comentário próprio ou resposta própria do admin): troca o texto por uma caixa de edição
+  const edit = e.target.closest('[data-edit], [data-edit-resp]');
   if (edit) {
-    const card = edit.closest('.comentario');
+    const ehResp = edit.hasAttribute('data-edit-resp');
+    const card = edit.closest(ehResp ? '.comentario-resposta' : '.comentario');
     const p = card.querySelector(':scope > p');
     const atual = p.textContent;
+    const minimo = ehResp ? 2 : 3;
+    const url = ehResp
+      ? `/api/admin/respostas/${edit.dataset.editResp}`
+      : `/api/materiais/comentarios/${edit.dataset.edit}`;
     const form = document.createElement('form');
     form.className = 'comentario-editar';
-    form.innerHTML = `<textarea maxlength="1000" aria-label="Editar comentário"></textarea>
+    form.innerHTML = `<textarea maxlength="1000" aria-label="Editar"></textarea>
       <div class="linha"><button type="button" class="btn btn-ghost btn-sm" data-edit-cancel>Cancelar</button>
       <button type="submit" class="btn btn-primary btn-sm">Salvar</button></div>`;
     form.querySelector('textarea').value = atual;
     p.replaceWith(form);
-    card.querySelector('.comentario-acoes').hidden = true;
+    const acoes = card.querySelector(':scope > .comentario-acoes');
+    if (acoes) acoes.hidden = true;
     form.querySelector('textarea').focus();
     form.querySelector('[data-edit-cancel]').addEventListener('click', () => carregarComentarios());
     form.addEventListener('submit', async (ev) => {
       ev.preventDefault();
       const texto = form.querySelector('textarea').value.trim();
-      if (texto.length < 3) return toast('Escreva pelo menos 3 caracteres.', 'error');
+      if (texto.length < minimo) return toast(`Escreva pelo menos ${minimo} caracteres.`, 'error');
       const salvar = form.querySelector('[type="submit"]');
       salvar.disabled = true;
       try {
-        await api.put(`/api/materiais/comentarios/${edit.dataset.edit}`, { texto });
-        toast('Comentário atualizado.', 'success');
+        await api.put(url, { texto });
+        toast(ehResp ? 'Resposta atualizada.' : 'Comentário atualizado.', 'success');
         carregarComentarios();
       } catch (err) {
         toast(err.message, 'error');
         salvar.disabled = false;
       }
     });
+    return;
+  }
+
+  // Excluir resposta da loja (admin)
+  const delResp = e.target.closest('[data-del-resp]');
+  if (delResp) {
+    const ok = await showModal({ titulo: 'Excluir resposta', corpo: '<p>Tem certeza que deseja excluir esta resposta?</p>', okLabel: 'Excluir', perigo: true });
+    if (!ok) return;
+    try {
+      await api.del(`/api/admin/respostas/${delResp.dataset.delResp}`);
+      toast('Resposta excluída.', 'success');
+      carregarComentarios();
+    } catch (err) {
+      toast(err.message, 'error');
+    }
     return;
   }
 

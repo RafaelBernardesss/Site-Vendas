@@ -44,7 +44,7 @@ form.addEventListener('submit', async (e) => {
     const { user } = await api.post('/api/auth/cadastro', {
       nome, email, senha, dataNascimento,
     });
-    toast(`Conta criada, ${user.nome.split(' ')[0]}! Bem-vindo à SlideHub.`, 'success');
+    toast(`Conta criada, ${user.nome.split(' ')[0]}! Bem-vindo à EducaPrime.`, 'success');
     const next = params.get('next');
     location.href = next && next.startsWith('/') ? next : '/';
   } catch (err) {

@@ -68,12 +68,16 @@ export function requireAuth(page) {
 /* ---------------- Layout ---------------- */
 /* Dados de contato e redes sociais exibidos no topo e no rodapé.
    Troque aqui pelos dados reais da loja. */
+const TELEFONE_WHATSAPP = '5517996340168'; // DDI 55 + DDD + número, só dígitos
+const WHATSAPP_URL = `https://wa.me/${TELEFONE_WHATSAPP}?text=${encodeURIComponent('Olá! Vim pelo site EducaPrime e gostaria de mais informações.')}`;
+const EMAIL_ASSUNTO = 'Contato pelo site EducaPrime';
+
 export const CONTATO = {
-  email: 'contato@slidehub.com.br',
-  telefone: '(00) 00000-0000',
+  email: 'welitoncosta@professor.educacao.sp.go.br',
+  telefone: '(17) 99634-0168',
   redes: [
     { nome: 'Instagram', href: '#', icone: 'instagram' },
-    { nome: 'WhatsApp', href: '#', icone: 'whatsapp' },
+    { nome: 'WhatsApp', href: WHATSAPP_URL, icone: 'whatsapp' },
     { nome: 'Facebook', href: '#', icone: 'facebook' },
   ],
 };
@@ -119,7 +123,7 @@ function tab(href, icone, label, { ativo = false, extra = '' } = {}) {
 }
 
 const LOGO =
-  '<svg class="brand-mark" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="16" fill="#E4572E"/><path d="M18 42l10-20 10 20" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M23 34h10" stroke="#fff" stroke-width="5" stroke-linecap="round"/></svg>';
+  '<svg class="brand-mark" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="16" fill="#E4572E"/><path d="M22 18h22v6H28v8h13v6H28v8h16v6H22z" fill="#fff"/></svg>';
 
 function tile(href, icone, label, { ativo = false, extra = '' } = {}) {
   return `<a class="nav-tile ${ativo ? 'active' : ''}" href="${href}"${ativo ? ' aria-current="page"' : ''}>
@@ -136,7 +140,7 @@ export function renderHeader() {
   const q = new URLSearchParams(location.search).get('q') || '';
 
   const redes = CONTATO.redes
-    .map((r) => `<a href="${r.href}" aria-label="${r.nome}" rel="noopener">${SOCIAL_ICONS[r.icone]}</a>`)
+    .map((r) => `<a href="${r.href}" aria-label="${r.nome}" ${r.href.startsWith('http') ? 'target="_blank"' : ''} rel="noopener noreferrer">${SOCIAL_ICONS[r.icone]}</a>`)
     .join('');
 
   const badge = '<span class="cart-count" data-cart-count hidden>0</span>';
@@ -150,10 +154,10 @@ export function renderHeader() {
         <div class="header-member">
           ${u ? userMenuHtml(u) : '<a class="btn-member" href="/login">Entrar</a>'}
         </div>
-        <a class="brand" href="/" aria-label="SlideHub — página inicial">
+        <a class="brand" href="/" aria-label="EducaPrime — página inicial">
           ${LOGO}
           <span class="brand-text">
-            <span class="brand-name">Slide<b>Hub</b></span>
+            <span class="brand-name">EducaPrime</span>
             <span class="brand-tag">materiais digitais</span>
           </span>
         </a>
@@ -253,7 +257,7 @@ export function renderFooter() {
   const el = document.getElementById('site-footer');
   if (!el) return;
   const redes = CONTATO.redes
-    .map((r) => `<a href="${r.href}" aria-label="${r.nome}" rel="noopener">${SOCIAL_ICONS[r.icone]}</a>`)
+    .map((r) => `<a href="${r.href}" aria-label="${r.nome}" ${r.href.startsWith('http') ? 'target="_blank"' : ''} rel="noopener noreferrer">${SOCIAL_ICONS[r.icone]}</a>`)
     .join('');
   el.innerHTML = `
   <footer class="site-footer">
@@ -264,7 +268,7 @@ export function renderFooter() {
       <div class="footer-brand">
         ${LOGO}
         <div>
-          <p class="footer-name">SlideHub</p>
+          <p class="footer-name">EducaPrime</p>
           <p class="footer-tag">Materiais digitais prontos para usar. Pague com Pix e baixe na hora.</p>
           <div class="footer-social">${redes}</div>
         </div>
@@ -282,13 +286,13 @@ export function renderFooter() {
       </nav>
       <div class="footer-col">
         <h3>Contato</h3>
-        <a href="mailto:${CONTATO.email}">${CONTATO.email}</a>
-        <span>${CONTATO.telefone}</span>
+        <a href="https://mail.google.com/mail/?view=cm&fs=1&to=${CONTATO.email}&su=${encodeURIComponent(EMAIL_ASSUNTO)}" target="_blank" rel="noopener noreferrer">${CONTATO.email}</a>
+        <a href="${WHATSAPP_URL}" target="_blank" rel="noopener noreferrer">${CONTATO.telefone}</a>
       </div>
     </div>
     <div class="footer-base">
       <div class="container footer-base-inner">
-        <span>© ${new Date().getFullYear()} SlideHub · Todos os direitos reservados</span>
+        <span>© ${new Date().getFullYear()} EducaPrime · Todos os direitos reservados</span>
         <span>Feito com Pix, café e PowerPoint.</span>
       </div>
     </div>
