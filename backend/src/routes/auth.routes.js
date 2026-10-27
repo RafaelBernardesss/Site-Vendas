@@ -2,7 +2,7 @@ const router = require('express').Router();
 const { z } = require('zod');
 const ctrl = require('../controllers/auth.controller');
 const { validate } = require('../middlewares/validate');
-const { loginLimiter, cadastroLimiter } = require('../middlewares/rateLimit');
+const { loginLimiter, cadastroLimiter, codigoLimiter } = require('../middlewares/rateLimit');
 
 const schemaCadastro = z.object({
   nome: z.string({ required_error: 'Informe seu nome.' }).trim().min(3, 'Informe seu nome completo (mínimo 3 caracteres).'),
@@ -27,6 +27,11 @@ const schemaLogin = z.object({
 
 router.post('/cadastro', cadastroLimiter, validate({ body: schemaCadastro }), ctrl.cadastro);
 router.post('/login', loginLimiter, validate({ body: schemaLogin }), ctrl.login);
+const schemaCodigo = z.object({
+  codigo: z.string({ required_error: 'Informe o código.' }).trim().regex(/^\d{6}$/, 'O código tem 6 números.'),
+});
+router.post('/login/verificar', codigoLimiter, validate({ body: schemaCodigo }), ctrl.verificarCodigoAdmin);
+router.post('/login/reenviar', codigoLimiter, ctrl.reenviarCodigoAdmin);
 router.get('/me', ctrl.me);
 router.post('/sair', ctrl.sair);
 

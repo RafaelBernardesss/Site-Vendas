@@ -20,6 +20,7 @@ model User {
   avaliacoes      Avaliacao[]
   comentarios     Comentario[]
   respostas       Resposta[]
+  adminCodigos    AdminCodigo[]
 }
 
 model Material {
@@ -153,4 +154,20 @@ model Resposta {
   createdAt    DateTime   @default(now())
 
   @@index([comentarioId, createdAt])
+}
+
+// Código de verificação (2ª etapa do login do administrador).
+// Guardamos só o HASH do código; vale por pouco tempo, tem limite de
+// tentativas e só pode ser usado uma vez.
+model AdminCodigo {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  codigoHash String
+  expiraEm   DateTime
+  tentativas Int      @default(0)
+  usado      Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  @@index([userId, createdAt])
 }

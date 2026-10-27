@@ -28,4 +28,10 @@ const comentarioLimiter = rateLimit({
   limit: 15,
 });
 
-module.exports = { loginLimiter, cadastroLimiter, comentarioLimiter };
+const codigoLimiter = rateLimit({
+  ...base,
+  windowMs: 15 * 60 * 1000,
+  limit: 15,
+});
+
+module.exports = { loginLimiter, cadastroLimiter, comentarioLimiter, codigoLimiter };

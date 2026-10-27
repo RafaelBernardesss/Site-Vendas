@@ -27,7 +27,7 @@ if (!rodar('Aplicando migrations', npx, ['prisma', 'migrate', 'deploy'], backend
 }
 
 // 3) Seed (admin + demo) — seguro para rodar várias vezes
-rodar('Seed', process.execPath, ['prisma/seed.js'], backend);
+rodar('Seed', isWin ? 'node' : process.execPath, ['prisma/seed.js'], backend);
 
 // 4) Front-end: gera o build do Vite se não existir ou se o código-fonte for mais novo
 function maisRecente(dir) {

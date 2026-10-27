@@ -34,7 +34,23 @@ const env = {
   UPLOAD_MAX_SIZE_MB: parseInt(process.env.UPLOAD_MAX_SIZE_MB || '25', 10),
   COOKIE_SECURE: process.env.COOKIE_SECURE === 'true',
   ENCRYPTION_KEY: process.env.ENCRYPTION_KEY || '',
+
+  // ---- Verificação por e-mail do admin (2ª etapa do login) ----
+  // Conta SMTP que ENVIA o e-mail:
+  SMTP_HOST: process.env.SMTP_HOST || '',
+  SMTP_PORT: parseInt(process.env.SMTP_PORT || '465', 10),
+  SMTP_USER: process.env.SMTP_USER || '',
+  SMTP_PASS: process.env.SMTP_PASS || '',
+  MAIL_FROM: process.env.MAIL_FROM || '',
+  // E-mail que RECEBE o código (se vazio, usa o ADMIN_EMAIL):
+  ADMIN_CODE_EMAIL: (process.env.ADMIN_CODE_EMAIL || '').trim().toLowerCase(),
 };
+
+// A verificação só fica ativa quando o SMTP está configurado.
+env.ADMIN_2FA_ATIVO = Boolean(env.SMTP_HOST && env.SMTP_USER && env.SMTP_PASS);
+if (!env.ADMIN_2FA_ATIVO) {
+  console.warn('[env] AVISO: SMTP nao configurado — login do admin SEM verificacao por e-mail.');
+}
 
 if (env.NODE_ENV === 'production' && env.JWT_SECRET === 'troque-este-segredo-em-producao') {
   console.warn('[env] ATENCAO: defina um JWT_SECRET forte antes de entrar em producao.');

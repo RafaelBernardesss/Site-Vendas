@@ -30,7 +30,17 @@
         <p id="form-erro" class="form-error" role="alert" hidden></p>
         <button type="submit" class="btn btn-primary btn-block btn-lg"><span class="btn-text">Entrar</span></button>
       </form>
-      <p class="auth-alt">Ainda não tem conta? <a href="/cadastro">Cadastre-se grátis</a></p>
+      <form id="form-codigo" novalidate hidden>
+        <p id="codigo-info" class="auth-sub"></p>
+        <div class="field">
+          <label for="codigo">Código de verificação</label>
+          <input id="codigo" name="codigo" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000" required />
+        </div>
+        <p id="codigo-erro" class="form-error" role="alert" hidden></p>
+        <button type="submit" class="btn btn-primary btn-block btn-lg"><span class="btn-text">Confirmar</span></button>
+        <p class="auth-alt"><a href="#" id="reenviar">Reenviar código</a> · <a href="/login">Voltar</a></p>
+      </form>
+      <p class="auth-alt" id="alt-cadastro">Ainda não tem conta? <a href="/cadastro">Cadastre-se grátis</a></p>
     </div>
   </main>
   <div id="site-footer"></div>
