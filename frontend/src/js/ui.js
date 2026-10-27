@@ -2,7 +2,6 @@ import { api } from './api.js';
 
 export const state = { user: null };
 
-/* ---------------- Utilidades ---------------- */
 export const money = (v) => (Number(v) || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
 export function escapeHtml(s) {
@@ -36,7 +35,6 @@ export const SVG_DOWNLOAD =
 
 const STAR_PATH = 'M12 2.6l2.9 6.1 6.6.9-4.8 4.6 1.2 6.6L12 17.6l-5.9 3.2 1.2-6.6L2.5 9.6l6.6-.9z';
 
-/** Estrelas somente leitura (aceita notas quebradas, ex.: 4.3 → 4 cheias). */
 export function stars(nota = 0) {
   const cheias = Math.round(Number(nota) || 0);
   return `<span class="stars" role="img" aria-label="${nota} de 5 estrelas">${[1, 2, 3, 4, 5]
@@ -46,7 +44,6 @@ export function stars(nota = 0) {
 
 export const STAR_SVG_PATH = STAR_PATH;
 
-/* ---------------- Sessão ---------------- */
 export async function loadUser() {
   try {
     const { user } = await api.get('/api/auth/me');
@@ -65,20 +62,20 @@ export function requireAuth(page) {
   return true;
 }
 
-/* ---------------- Layout ---------------- */
-/* Dados de contato e redes sociais exibidos no topo e no rodapé.
-   Troque aqui pelos dados reais da loja. */
+
 const TELEFONE_WHATSAPP = '5517996340168'; // DDI 55 + DDD + número, só dígitos
 const WHATSAPP_URL = `https://wa.me/${TELEFONE_WHATSAPP}?text=${encodeURIComponent('Olá! Vim pelo site EducaPrime e gostaria de mais informações.')}`;
 const EMAIL_ASSUNTO = 'Contato pelo site EducaPrime';
+const INSTAGRAM_URL = '';
+const FACEBOOK_URL= '';
 
 export const CONTATO = {
   email: 'welitoncosta@professor.educacao.sp.go.br',
   telefone: '(17) 99634-0168',
   redes: [
-    { nome: 'Instagram', href: '#', icone: 'instagram' },
+    { nome: 'Instagram', href: INSTAGRAM_URL, icone: 'instagram' },
     { nome: 'WhatsApp', href: WHATSAPP_URL, icone: 'whatsapp' },
-    { nome: 'Facebook', href: '#', icone: 'facebook' },
+    { nome: 'Facebook', href: FACEBOOK_URL, icone: 'facebook' },
   ],
 };
 
@@ -94,7 +91,6 @@ const SOCIAL_ICONS = {
 const SEARCH_ICON =
   '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M16 16l4.5 4.5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>';
 
-/* Ícones "ilustrados" dos botões do menu (duas cores + contorno marrom) */
 const INK = '#4a2a1a';
 const NAV_ICONS = {
   inicio: `<svg viewBox="0 0 48 48" aria-hidden="true"><rect x="11" y="22" width="26" height="18" rx="2.5" fill="#fff3e6" stroke="${INK}" stroke-width="2"/><path d="M6 24L24 8l18 16z" fill="#e4572e" stroke="${INK}" stroke-width="2" stroke-linejoin="round"/><rect x="20" y="29" width="8" height="11" rx="1.5" fill="#ffb27a" stroke="${INK}" stroke-width="2"/></svg>`,
@@ -105,7 +101,6 @@ const NAV_ICONS = {
   carrinho: `<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M5 8h6l5 22h20l4-15H14" fill="#fff3e6" stroke="${INK}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 15h26l-4 15H16z" fill="#ffb27a" stroke="${INK}" stroke-width="2" stroke-linejoin="round"/><circle cx="19" cy="39" r="3" fill="#e4572e" stroke="${INK}" stroke-width="2"/><circle cx="33" cy="39" r="3" fill="#e4572e" stroke="${INK}" stroke-width="2"/></svg>`,
 };
 
-/* Ícones simples (traço) da barra de abas do celular */
 const TAB_ICONS = {
   inicio: '<path d="M3 11l9-8 9 8v9a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1z"/>',
   materiais: '<path d="M4 5c3-1 6-1 8 1v13c-2-2-5-2-8-1zM20 5c-3-1-6-1-8 1v13c2-2 5-2 8-1z"/>',
@@ -144,7 +139,6 @@ export function renderHeader() {
     .join('');
 
   const badge = '<span class="cart-count" data-cart-count hidden>0</span>';
-  /* produto e checkout ficam em tela cheia (com barra de compra própria) */
   const semAbas = /^\/(produto|checkout)/.test(rota);
 
   el.innerHTML = `
@@ -247,7 +241,7 @@ function wireUserMenu() {
     try {
       await api.post('/api/auth/sair');
     } catch {
-      /* segue o logout */
+      
     }
     location.href = '/';
   });
@@ -310,7 +304,7 @@ export async function refreshCartCount() {
       badge.hidden = itens.length === 0;
     });
   } catch {
-    /* silencioso */
+    
   }
 }
 
@@ -341,7 +335,7 @@ export function toast(mensagem, tipo = 'info', duracao = 3800) {
   setTimeout(fecha, duracao);
 }
 
-/* ---------------- Estados vazios / skeleton ---------------- */
+
 export function skeletonGrid(n = 8) {
   return Array.from(
     { length: n },
@@ -374,7 +368,7 @@ export function emptyState({ titulo, texto, acaoHref, acaoLabel, icone = 'box' }
   </div>`;
 }
 
-/* ---------------- Modal de confirmação ---------------- */
+
 export function showModal({ titulo, corpo = '', okLabel = 'Confirmar', cancelLabel = 'Cancelar', perigo = false }) {
   return new Promise((resolve) => {
     const root = document.getElementById('modal-root') || document.body;

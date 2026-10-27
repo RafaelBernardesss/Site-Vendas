@@ -2,14 +2,8 @@ const crypto = require('crypto');
 const env = require('../lib/env');
 const { ApiError } = require('../lib/errors');
 
-const VALIDADE_MIN = 30; // minutos
+const VALIDADE_MIN = 30; 
 
-/**
- * Cria um pagamento Pix.
- * - PAYMENT_MODE=mock  -> gera um QR/BR-code fictício (testes sem credenciais)
- * - PAYMENT_MODE=mp    -> cria pagamento real no Mercado Pago
- * Retorna { providerPaymentId, txid, qrCode, qrCodeBase64, status, expiresAt }
- */
 async function criarPagamentoPix({ orderId, valor, email, nome }) {
   if (env.PAYMENT_MODE !== 'mp') {
     const txid = `MOCK-${crypto.randomBytes(16).toString('hex').toUpperCase()}`;
@@ -27,7 +21,7 @@ async function criarPagamentoPix({ orderId, valor, email, nome }) {
     };
   }
 
-  // ---------- Mercado Pago (produção) ----------
+
   if (!env.MP_ACCESS_TOKEN) {
     throw ApiError.badRequest(
       'Pagamento real indisponível: configure MP_ACCESS_TOKEN e defina PAYMENT_MODE=mp no servidor.'
@@ -69,7 +63,6 @@ async function criarPagamentoPix({ orderId, valor, email, nome }) {
   };
 }
 
-/** Consulta o status do pagamento no provedor (null em modo mock). */
 async function statusNoProvedor(providerPaymentId) {
   if (env.PAYMENT_MODE !== 'mp' || !providerPaymentId || providerPaymentId.startsWith('mock-')) {
     return null;
