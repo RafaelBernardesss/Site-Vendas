@@ -1,0 +1,1 @@
+Site para fazer as configurações da verificação de email:https://myaccount.google.com/apppasswords
