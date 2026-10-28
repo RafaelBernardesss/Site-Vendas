@@ -57,7 +57,7 @@ async function listarComentarios(req, res, next) {
         id: c.id,
         texto: c.texto,
         createdAt: c.createdAt,
-        autor: c.user.role === 'ADMIN' ? 'Loja SlideHub' : nomePublico(c.user.nome),
+        autor: c.user.role === 'ADMIN' ? 'Loja EducaPrime' : nomePublico(c.user.nome),
         admin: c.user.role === 'ADMIN',
         compraVerificada: compradores.has(c.userId),
         nota: notaDe.get(c.userId) || null,
@@ -67,7 +67,7 @@ async function listarComentarios(req, res, next) {
           texto: r.texto,
           createdAt: r.createdAt,
           admin: r.user.role === 'ADMIN',
-          autor: r.user.role === 'ADMIN' ? 'Loja SlideHub' : nomePublico(r.user.nome),
+          autor: r.user.role === 'ADMIN' ? 'Loja EducaPrime' : nomePublico(r.user.nome),
           // Respostas são da loja: só o admin que escreveu edita; qualquer admin exclui.
           meu: !!req.user && req.user.id === r.userId,
           podeExcluir: !!req.user && req.user.role === 'ADMIN',

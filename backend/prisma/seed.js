@@ -1,6 +1,3 @@
-/* Seed: cria o admin (ADMIN_EMAIL/ADMIN_PASSWORD) e, se a loja estiver
-   vazia e os arquivos demo existirem em uploads/demo, publica 4 materiais
-   de demonstração. Seguro para rodar várias vezes. */
 require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
 
 const fs = require('fs');
@@ -8,7 +5,6 @@ const path = require('path');
 const bcrypt = require('bcryptjs');
 const { PrismaClient } = require('@prisma/client');
 
-// Garante SQLite mesmo que a plataforma injete outra DATABASE_URL
 if (!process.env.DATABASE_URL || !process.env.DATABASE_URL.startsWith('file:')) {
   process.env.DATABASE_URL = 'file:./dev.db';
 }

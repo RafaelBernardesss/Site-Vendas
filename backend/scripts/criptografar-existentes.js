@@ -1,7 +1,3 @@
-/* Criptografa CPF e nome dos pedidos que já estão no banco em texto puro.
-   Seguro para rodar várias vezes (pula o que já está criptografado).
-   ANTES de rodar: copie backend/prisma/dev.db como backup e defina ENCRYPTION_KEY no .env.
-   Uso (na pasta backend):  node scripts/criptografar-existentes.js */
 require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
 
 if (!process.env.DATABASE_URL || !process.env.DATABASE_URL.startsWith('file:')) {

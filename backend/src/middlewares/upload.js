@@ -5,7 +5,6 @@ const multer = require('multer');
 const env = require('../lib/env');
 const { ApiError } = require('../lib/errors');
 
-/** Extensões aceitas -> mime (PowerPoint + imagens). */
 const EXT = {
   ppt: 'application/vnd.ms-powerpoint',
   pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
@@ -20,7 +19,7 @@ const EXT = {
 };
 
 const IMG_EXT = new Set(['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg', 'bmp', 'avif']);
-// Fotos públicas do anúncio: sem SVG/BMP (SVG pode carregar scripts).
+
 const FOTO_EXT = new Set(['jpg', 'jpeg', 'png', 'webp', 'gif', 'avif']);
 
 const DESTINO = path.join(env.UPLOAD_DIR, 'arquivos');
@@ -58,13 +57,11 @@ const upload = multer({
   },
 });
 
-/** Publicação: arquivos entregues ao cliente + fotos do anúncio. */
 const uploadMaterial = upload.fields([
   { name: 'arquivos', maxCount: 20 },
   { name: 'fotos', maxCount: 10 },
 ]);
 
-/** Apenas fotos (adicionar fotos a um material já publicado). */
 const uploadFotos = upload.array('fotos', 10);
 
 module.exports = { upload, uploadMaterial, uploadFotos, EXT, IMG_EXT, FOTO_EXT };

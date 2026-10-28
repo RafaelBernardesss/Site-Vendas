@@ -6,13 +6,7 @@ const pix = require('../services/pix');
 const cpfSvc = require('../services/cpf');
 const cripto = require('../lib/crypto');
 
-/**
- * Confirma o pagamento de um pedido (IDEMPOTENTE):
- * - atualiza Order e OrderItems para PAID
- * - grava txid e paidAt
- * - limpa os itens comprados do carrinho do usuário
- * Se o pedido já estiver PAID, retorna sem alterar nada.
- */
+
 async function confirmarPagamento(orderId, txid) {
   return prisma.$transaction(async (tx) => {
     const order = await tx.order.findUnique({ where: { id: orderId } });

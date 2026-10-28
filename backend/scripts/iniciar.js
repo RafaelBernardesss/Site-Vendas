@@ -1,6 +1,3 @@
-/* Inicialização segura: prepara o banco e o front, depois sobe o servidor.
-   Usado por "npm start" (preview, Hostinger e produção local).
-   Cada etapa que falhar é avisada, mas o servidor tenta subir mesmo assim. */
 const { spawnSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
@@ -18,18 +15,14 @@ function rodar(titulo, cmd, args, cwd) {
   return r.status === 0;
 }
 
-// 1) Prisma Client (necessário, senão o servidor cai ao iniciar)
 rodar('Gerando Prisma Client', npx, ['prisma', 'generate'], backend);
 
-// 2) Banco: aplica as migrations; se falhar, cria as tabelas direto do schema
 if (!rodar('Aplicando migrations', npx, ['prisma', 'migrate', 'deploy'], backend)) {
   rodar('Criando tabelas (db push)', npx, ['prisma', 'db', 'push', '--skip-generate'], backend);
 }
 
-// 3) Seed (admin + demo) — seguro para rodar várias vezes
 rodar('Seed', isWin ? 'node' : process.execPath, ['prisma/seed.js'], backend);
 
-// 4) Front-end: gera o build do Vite se não existir ou se o código-fonte for mais novo
 function maisRecente(dir) {
   let max = 0;
   for (const nome of fs.readdirSync(dir)) {

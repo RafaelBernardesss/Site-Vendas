@@ -7,11 +7,11 @@ const cpfSvc = require('../services/cpf');
 
 const schemaCriar = z.object({
   nomeCompleto: z
-    .string({ required_error: 'Informe seu nome completo.' })
+    .string({ error: 'Informe seu nome completo.' })
     .trim()
     .min(5, 'Informe seu nome completo.'),
   cpf: z
-    .string({ required_error: 'Informe seu CPF.' })
+    .string({ error: 'Informe seu CPF.' })
     .trim()
     .refine(cpfSvc.validarCpf, 'CPF inválido. Confira os dígitos.'),
 });

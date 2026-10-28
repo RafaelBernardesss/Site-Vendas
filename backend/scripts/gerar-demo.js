@@ -1,14 +1,9 @@
-/* Gera os arquivos PowerPoint de demonstração (pitch-deck.pptx e
-   relatorio-semestral.pptx) em uploads/demo. As capas (imagens) devem
-   existir na mesma pasta — gere-as ou publique seus próprios materiais
-   pelo painel admin. Execute com: npm run demo:files --workspace backend */
 require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
 
 const fs = require('fs');
 const path = require('path');
 const PptxGenJS = require('pptxgenjs');
 
-// Garante SQLite mesmo que a plataforma injete outra DATABASE_URL
 if (!process.env.DATABASE_URL || !process.env.DATABASE_URL.startsWith('file:')) {
   process.env.DATABASE_URL = 'file:./dev.db';
 }

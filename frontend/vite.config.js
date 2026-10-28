@@ -14,6 +14,8 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     emptyOutDir: true,
+    // esbuild 0.28 não transpila desestruturação para navegadores muito antigos
+    target: 'es2022',
     rollupOptions: {
       input: Object.fromEntries(paginas.map((p) => [p, `./${p}.html`])),
     },
