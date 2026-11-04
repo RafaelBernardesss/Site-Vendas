@@ -1,0 +1,42 @@
+{
+  "name": "slidehub-backend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "API da SlideHub — Express + Prisma + SQLite + Pix",
+  "main": "src/server.js",
+  "scripts": {
+    "predev": "prisma generate && prisma migrate deploy",
+    "dev": "node --watch src/server.js",
+    "start": "node scripts/iniciar.js",
+    "build": "prisma generate && prisma migrate deploy && node prisma/seed.js",
+    "db:migrate": "prisma migrate dev",
+    "db:push": "prisma db push",
+    "db:seed": "node prisma/seed.js",
+    "db:studio": "prisma studio",
+    "demo:files": "node scripts/gerar-demo.js",
+    "postinstall": "prisma generate",
+    "server": "node src/server.js"
+  },
+  "prisma": {
+    "seed": "node prisma/seed.js"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.5.0",
+    "archiver": "^7.0.1",
+    "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.5.0",
+    "helmet": "^8.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^2.3.0",
+    "nodemailer": "^10.2.1",
+    "zod": "^4.6.6"
+  },
+  "devDependencies": {
+    "pptxgenjs": "^3.12.0",
+    "prisma": "^6.5.0"
+  }
+}

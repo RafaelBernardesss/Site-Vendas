@@ -1,0 +1,63 @@
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '..', '..', '.env') });
+
+/**
+ * O app usa SEMPRE SQLite. Aceita DATABASE_URL externa apenas quando
+ * aponta para arquivo file: (ex.: file:/home/usuario/slidehub.db).
+ * URLs de outros bancos (injetadas por plataformas) são ignoradas.
+ */
+function resolverDatabaseUrl() {
+  const u = process.env.DATABASE_URL;
+  const alvo = u && u.startsWith('file:') ? u : 'file:./dev.db';
+  const caminho = alvo.slice(5).split('?')[0];
+  if (path.isAbsolute(caminho) || /^[a-zA-Z]:[\\/]/.test(caminho)) return alvo;
+  // Caminho relativo: o Prisma resolve a partir da pasta do schema (backend/prisma).
+  // Deixamos absoluto para CLI (migrate) e servidor usarem exatamente o mesmo arquivo.
+  return 'file:' + path.resolve(__dirname, '..', '..', 'prisma', caminho).replace(/\\/g, '/');
+}
+
+// Normaliza ANTES de qualquer PrismaClient ser criado (o client lê
+// process.env.DATABASE_URL diretamente).
+process.env.DATABASE_URL = resolverDatabaseUrl();
+
+const env = {
+  NODE_ENV: process.env.NODE_ENV || 'development',
+  PORT: parseInt(process.env.PORT || '3000', 10),
+  DATABASE_URL: process.env.DATABASE_URL,
+  JWT_SECRET: process.env.JWT_SECRET || 'troque-este-segredo-em-producao',
+  ADMIN_EMAIL: (process.env.ADMIN_EMAIL || 'admin@slidehub.com').toLowerCase(),
+  ADMIN_PASSWORD: process.env.ADMIN_PASSWORD || 'Admin@1234',
+  PAYMENT_MODE: (process.env.PAYMENT_MODE || 'mock').toLowerCase(),
+  MP_ACCESS_TOKEN: process.env.MP_ACCESS_TOKEN || '',
+  MP_WEBHOOK_SECRET: process.env.MP_WEBHOOK_SECRET || '',
+  PUBLIC_URL: process.env.PUBLIC_URL || 'http://localhost:3000',
+  FRONTEND_URL: process.env.FRONTEND_URL || 'http://localhost:5173',
+  UPLOAD_DIR: process.env.UPLOAD_DIR
+    ? path.resolve(process.env.UPLOAD_DIR)
+    : path.join(__dirname, '..', '..', 'uploads'),
+  UPLOAD_MAX_SIZE_MB: parseInt(process.env.UPLOAD_MAX_SIZE_MB || '25', 10),
+  COOKIE_SECURE: process.env.COOKIE_SECURE === 'true',
+  ENCRYPTION_KEY: process.env.ENCRYPTION_KEY || '',
+
+  // ---- Verificação por e-mail do admin (2ª etapa do login) ----
+  // Conta SMTP que ENVIA o e-mail:
+  SMTP_HOST: process.env.SMTP_HOST || '',
+  SMTP_PORT: parseInt(process.env.SMTP_PORT || '465', 10),
+  SMTP_USER: process.env.SMTP_USER || '',
+  SMTP_PASS: process.env.SMTP_PASS || '',
+  MAIL_FROM: process.env.MAIL_FROM || '',
+  // E-mail que RECEBE o código (se vazio, usa o ADMIN_EMAIL):
+  ADMIN_CODE_EMAIL: (process.env.ADMIN_CODE_EMAIL || '').trim().toLowerCase(),
+};
+
+// A verificação só fica ativa quando o SMTP está configurado.
+env.ADMIN_2FA_ATIVO = Boolean(env.SMTP_HOST && env.SMTP_USER && env.SMTP_PASS);
+if (!env.ADMIN_2FA_ATIVO) {
+  console.warn('[env] AVISO: SMTP nao configurado — login do admin SEM verificacao por e-mail.');
+}
+
+if (env.NODE_ENV === 'production' && env.JWT_SECRET === 'troque-este-segredo-em-producao') {
+  console.warn('[env] ATENCAO: defina um JWT_SECRET forte antes de entrar em producao.');
+}
+
+module.exports = env;
