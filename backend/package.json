@@ -1,8 +1,8 @@
 {
-  "name": "slidehub-backend",
+  "name": "educaprime-backend",
   "version": "1.0.0",
   "private": true,
-  "description": "API da SlideHub — Express + Prisma + SQLite + Pix",
+  "description": "API da EducaPrime — Express + Prisma + SQLite + Pix",
   "main": "src/server.js",
   "scripts": {
     "predev": "prisma generate && prisma migrate deploy",
