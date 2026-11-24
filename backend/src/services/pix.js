@@ -40,8 +40,10 @@ async function criarPagamentoPix({ orderId, valor, email, nome }) {
       description: 'SlideHub - materiais digitais',
       payment_method_id: 'pix',
       payer: { email, first_name: nome || 'Cliente' },
-      point_of_interaction: { transaction_mode: 'online' },
       external_reference: String(orderId),
+      date_of_expiration: new Date(Date.now() + VALIDADE_MIN * 60 * 1000)
+        .toISOString()
+        .replace('Z', '-00:00'),
     }),
   });
 
@@ -50,15 +52,16 @@ async function criarPagamentoPix({ orderId, valor, email, nome }) {
     throw ApiError.badRequest(data.message || 'Falha ao gerar o Pix no provedor de pagamento.');
   }
 
-  const check = (data.point_of_interaction && data.point_of_interaction.data && data.point_of_interaction.data.check_data) || {};
+  // O Mercado Pago devolve o QR em point_of_interaction.transaction_data
+  const check = (data.point_of_interaction && data.point_of_interaction.transaction_data) || {};
   return {
     providerPaymentId: String(data.id),
     txid: check.txid || null,
     qrCode: check.qr_code || null,
     qrCodeBase64: check.qr_code_base64 || null,
     status: data.status === 'approved' ? 'PAID' : 'PENDING',
-    expiresAt: check.qr_code_expiration
-      ? new Date(check.qr_code_expiration)
+    expiresAt: data.date_of_expiration
+      ? new Date(data.date_of_expiration)
       : new Date(Date.now() + VALIDADE_MIN * 60 * 1000),
   };
 }
