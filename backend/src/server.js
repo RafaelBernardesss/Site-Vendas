@@ -80,8 +80,9 @@ if (fs.existsSync(dist)) {
 app.use(notFoundApi);
 app.use(errorHandler);
 
-prisma.user
-  .count()
+require('./lib/garantirBanco')
+  .garantirBanco()
+  .then(() => prisma.user.count())
   .then((n) => console.log(`[db] Banco OK (${n} usuarios)`))
   .catch((e) => console.error('[db] FALHA ao acessar o banco:', e.message));
 
